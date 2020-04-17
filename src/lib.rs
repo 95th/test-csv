@@ -16,6 +16,19 @@ pub fn test_csv(args: TokenStream, input: TokenStream) -> TokenStream {
             .to_compile_error()
             .into();
     }
+
+    if let syn::ReturnType::Type(_, _) = &func.sig.output {
+        return syn::Error::new_spanned(func.sig.output, "Return type is not allowed")
+            .to_compile_error()
+            .into();
+    }
+
+    if func.sig.asyncness.is_some() {
+        return syn::Error::new_spanned(func.sig.asyncness, "async functions are not allowed")
+            .to_compile_error()
+            .into();
+    }
+
     let body = &func.block;
 
     let out = quote! {
