@@ -1,0 +1,17 @@
+[package]
+name = "test-csv"
+version = "0.1.0"
+authors = ["95th <vargwin@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1.0", features = ["full"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+csv = "1.1"
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
