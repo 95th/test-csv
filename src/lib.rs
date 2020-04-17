@@ -4,29 +4,35 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 
+macro_rules! bail {
+    ($span_src: expr, $msg: expr) => {
+        return Err(syn::Error::new_spanned($span_src, $msg));
+    };
+}
+
 #[proc_macro_attribute]
 pub fn test_csv(args: TokenStream, input: TokenStream) -> TokenStream {
     let func = parse_macro_input!(input as syn::ItemFn);
     let file = parse_macro_input!(args as syn::LitStr);
 
+    to_tokens(func, file)
+        .unwrap_or_else(|e| e.to_compile_error())
+        .into()
+}
+
+fn to_tokens(func: syn::ItemFn, file: syn::LitStr) -> syn::Result<proc_macro2::TokenStream> {
     let func_name = &func.sig.ident;
     let args: Vec<_> = func.sig.inputs.iter().collect();
     if args.len() != 1 {
-        return syn::Error::new_spanned(func.sig.inputs, "Require a single argument")
-            .to_compile_error()
-            .into();
+        bail!(func.sig.inputs, "Require a single argument");
     }
 
     if let syn::ReturnType::Type(_, _) = &func.sig.output {
-        return syn::Error::new_spanned(func.sig.output, "Return type is not allowed")
-            .to_compile_error()
-            .into();
+        bail!(func.sig.output, "Return type is not allowed");
     }
 
     if func.sig.asyncness.is_some() {
-        return syn::Error::new_spanned(func.sig.asyncness, "async functions are not allowed")
-            .to_compile_error()
-            .into();
+        bail!(func.sig.asyncness, "async functions are not allowed");
     }
 
     let body = &func.block;
@@ -49,5 +55,6 @@ pub fn test_csv(args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
     };
-    out.into()
+
+    Ok(out)
 }
