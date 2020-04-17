@@ -1,17 +1,19 @@
-use serde::Deserialize;
-use test_csv::test_csv;
-
-#[derive(Default, Deserialize)]
-struct Data {
-    a: String,
-    b: u32,
-    c: u32,
-}
-
-#[test_csv("examples/file.csv")]
-fn foo(data: Data) {
-    println!("a: {}, b: {}, c: {}", data.a, data.b, data.c);
-    assert!(data.b > data.c);
-}
-
 fn main() {}
+
+#[cfg(test)]
+mod tests {
+    use serde::Deserialize;
+    use test_csv::test_csv;
+
+    #[derive(Deserialize)]
+    struct Data {
+        a: String,
+        b: u64,
+        c: u64,
+    }
+
+    #[test_csv("file.csv")]
+    fn foo(d: Data) {
+        assert!(d.b > d.c, "Failure on line: {} for {}", line_no(), d.a);
+    }
+}
